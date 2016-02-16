@@ -1,27 +1,22 @@
 package SearchEngine;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class Document{
-	//String title; soon to be added
+@SuppressWarnings("serial")
+public class Document implements Serializable {
 	String url;
 	String content;
 	int docID;
 	Map<String, Integer> wordFreq = new HashMap<String, Integer>();
-	Set<String> words;
 	List<Double> vsm;
 	
 	public Document(){}
 	
-	public Document(String url, int docID, Map<String, Integer> wordFreq, Set<String> words){
-		this.words = words;
+	public Document(String url, int docID, Map<String, Integer> wordFreq){
 		this.url = url;
 		this.docID = docID;
 		this.wordFreq = wordFreq;
-	}
-	
-	public Set<String> words(){
-		return words;
 	}
 	
 	public Document(String url, String content, int docID, Map<String, Integer> wordFreq){

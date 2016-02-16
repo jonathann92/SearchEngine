@@ -8,6 +8,7 @@ import java.util.List;
  * 				Leonard Bejosano 32437030
  */
 
+@SuppressWarnings("serial")
 public final class Term implements Serializable {
 	String word;
 	Integer df;

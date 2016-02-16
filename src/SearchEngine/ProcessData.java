@@ -7,19 +7,15 @@ package SearchEngine;
  * 			Leonard Bejosano 32437030
  */
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,20 +85,15 @@ public class ProcessData {
 		return toReturn;
 	}
 	
-	public static List<String> getUniqueWords(List<CrawlerData> pages) {
+	public static List<String> getUniqueWords(List<Document> docs) {
 		Set<String> unique = new HashSet<String>();
 		Set<String> stopWords = setStopWords();
 		
-		for(CrawlerData page: pages){
-			unique.addAll(Arrays.asList(page.getText().replaceAll("'", "").toLowerCase().split("[^A-Za-z0-9`']")));
+		for(Document doc : docs){
+			unique.addAll(doc.getWordFreq().keySet());
 		}
-		
+
 		unique.removeAll(stopWords);
-		for(Iterator<String> it = unique.iterator(); it.hasNext();){
-			String word = it.next();
-			if(word.length() < 2 || Character.isDigit(word.charAt(0)))
-				it.remove();
-		}
 		
 		return new ArrayList<String>(unique);
 	}
@@ -111,16 +102,16 @@ public class ProcessData {
 		Integer count = 0;
 		
 		for(Document document: docs){
-			if(document.words().contains(term))
+			if(document.getWordFreq().containsKey(term))
 				++count;
 		}
 		
 		return count;
 	}
 	
-	public static List<Term> createTerms(List<CrawlerData> pages, List<Document> docs){
+	public static List<Term> createTerms(List<Document> docs){
 		List<Term> terms = new ArrayList<Term>();
-		List<String> unique = getUniqueWords(pages);
+		List<String> unique = getUniqueWords(docs);
 		
 		int i = 0;
 		for(String term: unique){
@@ -145,40 +136,91 @@ public class ProcessData {
 			
 			for(String key: unique){
 				if(key.length() < 2 || Character.isDigit(key.charAt(0))) continue;
-				Integer freq = Collections.frequency(text, key);
-				wordFreq.put(key, freq);
+				// if( stopWords.contain(key) ) continue;
+				wordFreq.put(key, Collections.frequency(text, key));
 			}
-			documents.add(new Document(page.getURL(), documents.size(), wordFreq, unique ));
+			documents.add(new Document(page.getURL(), documents.size(), wordFreq));
 		}
 		
 		return documents;
 	}
 	
-	public static List<ArrayList<Double>> create_TF_IDF(List<Document> docs){
-		
-		return null;
+	public static Object readObjectFromFile(String name){
+		Object object = null;
+		File docFile = new File(name);
+		if(docFile.exists()){
+			ObjectInputStream ois = null;
+			try{
+				System.out.println("Retrieving: " + name);
+				ois = new ObjectInputStream(new FileInputStream(docFile));
+				object = ois.readObject();
+				System.out.println("Retrieved: " + name);
+			} catch (Exception e) { e.printStackTrace(); }
+			finally {
+				if( ois != null){
+					try { ois.close(); } catch (Exception e2) { e2.printStackTrace(); }
+				}
+			}
+		} else System.out.println("File: " + name + " Does not exist");
+
+		return object;
 	}
 	
-	public static void process(String[] args){
-		String dir = args[0].endsWith(File.separator) ? args[0] : (args[0]+=File.separator);
-		// END SETUP
-
-		List<CrawlerData> pages = getFilesInDirectory(dir+"CrawlerData"+File.separator);
-		System.out.println("Number of documents: " + pages.size());
+	public static void writeObjectToFile(Object Object, String name){
+		ObjectOutputStream oos = null;
+		try{
+			System.out.println("Writing File: " + name);
+			oos = new ObjectOutputStream (new FileOutputStream(name));
+			oos.writeObject(Object);
+			oos.writeObject(null);
+			System.out.println("Wrote File: " + name);
+		} catch(Exception e) { e.printStackTrace(); }
+		finally { 
+			if(oos != null){ try { oos.close(); } catch (Exception e2) { e2.printStackTrace(); } } 
+		}
+	}
+	
+	public static List<CrawlerData> getPages(String dir){
+		@SuppressWarnings("unchecked")
+		List<CrawlerData> pages = (List<CrawlerData>) readObjectFromFile("pages");
+		if(pages == null)
+			pages = getFilesInDirectory(dir+"CrawlerData"+File.separator);
+		writeObjectToFile((Object) pages, "pages");
 		
-		//doc ID is basically index of docs
-		List<Document> docs = createDocuments(pages);
-		System.out.println("document size: " + docs.size());
+		return pages;
+	}
+	
+	public static List<Document> getDocuments(List<CrawlerData> pages){
+		@SuppressWarnings("unchecked")
+		List<Document> docs = (List<Document>) readObjectFromFile("docs");
+		if(docs == null)
+			docs = createDocuments(pages);
 		
-		//Term ID is basically index of terms
-		List<Term> terms = createTerms(pages, docs);
-		System.out.println("Number of unique words: " + terms.size());
+		writeObjectToFile((Object) docs, "docs");
+		
+		return docs;
+	}
+	
+	public static List<Term> getTerms(List<Document> docs){
+		@SuppressWarnings("unchecked")
+		List<Term> terms = (List<Term>) readObjectFromFile("terms");
+		if(terms == null)
+			terms = createTerms(docs);
+		writeObjectToFile((Object) terms, "terms");
+		return terms;
+	}
+	
+	public static void process(String dir){
+		//List<CrawlerData> pages = getPages(dir);
+		List<CrawlerData> pages = null;
 
-		//Number of unique words: 231931
-		System.out.println(docs.get(0).ID());
+		List<Document> docs = getDocuments(pages);
+		Integer corpus = docs.size();
+		
+		List<Term> terms = getTerms(docs);
+		
+		
 
-		pages = null;
-		System.gc();
 	}
 
 	public static void main(String[] args) {
@@ -187,8 +229,9 @@ public class ProcessData {
 			System.out.println("Need 1 argument");
 			return;
 		}
+		String dir = args[0].endsWith(File.separator) ? args[0] : (args[0]+=File.separator);
 		
-		process(args);
+		process(dir);
 	}
 
 }
