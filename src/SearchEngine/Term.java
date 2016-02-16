@@ -1,5 +1,6 @@
 package SearchEngine;
 import java.io.Serializable;
+import java.util.List;
 
 /*
  * Authors: Jonathan Nguyen 54203830
@@ -9,19 +10,17 @@ import java.io.Serializable;
 
 public final class Term implements Serializable {
 	String word;
-	int id;
+	Integer df;
+	Integer id;
 	
 	
-	public Term(String word, int frequency, int id){
+	public Term(String word, Integer df, Integer id){
 		this.word = word;
+		this.df = df;
 		this.id = id;
 	}
 	
 	public Term(String word) {
-		this.word = word;
-	}
-	
-	public Term(String word, int frequency) {
 		this.word = word;
 	}
 	
@@ -36,6 +35,10 @@ public final class Term implements Serializable {
 	
 	public void setID(int id){
 		this.id = id;
+	}
+	
+	public int df(){
+		return df;
 	}
 	
 	@Override

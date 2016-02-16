@@ -89,15 +89,13 @@ public class ProcessData {
 		return toReturn;
 	}
 	
-	public static Set<String> getUniqueWords(List<CrawlerData> pages) {
+	public static List<String> getUniqueWords(List<CrawlerData> pages) {
 		Set<String> unique = new HashSet<String>();
 		Set<String> stopWords = setStopWords();
 		
 		for(CrawlerData page: pages){
 			unique.addAll(Arrays.asList(page.getText().replaceAll("'", "").toLowerCase().split("[^A-Za-z0-9`']")));
 		}
-		
-		
 		
 		unique.removeAll(stopWords);
 		for(Iterator<String> it = unique.iterator(); it.hasNext();){
@@ -106,27 +104,51 @@ public class ProcessData {
 				it.remove();
 		}
 		
-		return unique;
+		return new ArrayList<String>(unique);
+	}
+	
+	public static Integer countDF(String term, List<Document> docs){
+		Integer count = 0;
+		
+		for(Document document: docs){
+			if(document.words().contains(term))
+				++count;
+		}
+		
+		return count;
+	}
+	
+	public static List<Term> createTerms(List<CrawlerData> pages, List<Document> docs){
+		List<Term> terms = new ArrayList<Term>();
+		List<String> unique = getUniqueWords(pages);
+		
+		int i = 0;
+		for(String term: unique){
+			System.out.println(++i);
+			terms.add( new Term(term, countDF(term, docs), terms.size()) );
+		}
+		return terms;
 	}
 	
 	public static List<Document> createDocuments(List<CrawlerData> pages){
 		List<Document> documents = new ArrayList<Document>();
-		CrawlerData empty = new CrawlerData();
+		//Set<String> stopWords = setStopWords();
+
 		int i = 0;
 		for(CrawlerData page: pages){
+			System.out.println(++i);
+
 			Map<String, Integer> wordFreq = new HashMap<String, Integer>();
-			//System.out.println(++i);
 			List<String> text = Arrays.asList(page.getText().replaceAll("'", "").toLowerCase().split("[^A-Za-z0-9`']"));
 			Set<String> unique = new HashSet<String>(text);
 			unique.remove("");
 			
 			for(String key: unique){
-				if(key.length() <= 1 || Character.isDigit(key.charAt(0))) continue;
+				if(key.length() < 2 || Character.isDigit(key.charAt(0))) continue;
 				Integer freq = Collections.frequency(text, key);
 				wordFreq.put(key, freq);
 			}
-			documents.add(new Document(page.getURL(), documents.size(), wordFreq ));
-			page = empty;
+			documents.add(new Document(page.getURL(), documents.size(), wordFreq, unique ));
 		}
 		
 		return documents;
@@ -136,31 +158,37 @@ public class ProcessData {
 		
 		return null;
 	}
-
-	public static void main(String[] args) {
-		int mb = 1024 * 1024;
-		Runtime instance = Runtime.getRuntime();
-		// SETUP
-		if(args.length != 1) {
-			System.out.println("Need 1 argument");
-			return;
-		}
+	
+	public static void process(String[] args){
 		String dir = args[0].endsWith(File.separator) ? args[0] : (args[0]+=File.separator);
 		// END SETUP
 
 		List<CrawlerData> pages = getFilesInDirectory(dir+"CrawlerData"+File.separator);
 		System.out.println("Number of documents: " + pages.size());
 		
-		Set<String> unique = getUniqueWords(pages);
-		System.out.println("Number of unique words: " + unique.size());
-
-		//Number of unique words: 231931
+		//doc ID is basically index of docs
 		List<Document> docs = createDocuments(pages);
 		System.out.println("document size: " + docs.size());
+		
+		//Term ID is basically index of terms
+		List<Term> terms = createTerms(pages, docs);
+		System.out.println("Number of unique words: " + terms.size());
+
+		//Number of unique words: 231931
+		System.out.println(docs.get(0).ID());
+
 		pages = null;
 		System.gc();
-		List<List<Double>> tf_idf = new ArrayList<List<Double>>();
+	}
+
+	public static void main(String[] args) {
+		// SETUP
+		if(args.length != 1) {
+			System.out.println("Need 1 argument");
+			return;
+		}
 		
+		process(args);
 	}
 
 }
