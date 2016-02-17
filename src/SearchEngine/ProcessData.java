@@ -210,6 +210,57 @@ public class ProcessData {
 		return terms;
 	}
 	
+	public static void docid2termlist(List<Term> terms, List<Document> docs, Map<String, Integer> termid){
+		System.out.print("{");
+		for(Document doc: docs){
+			System.out.print(doc.ID()+": [");
+			for(String key : doc.getWordFreq().keySet()){
+				System.out.print(termid.get(key) + ", ");
+			}
+			System.out.println("],");
+		}
+	}
+	
+	public static void term2termid(Map<String, Integer> map){
+		System.out.print("{ " );
+		int i = 0;
+		for(String key: map.keySet()){
+			if(i >= 100) break;
+		
+			System.out.print(key + ":" + map.get(key) + ", ");
+		}
+		System.out.println("}");
+	}
+	
+	public static void termid2term(Map<String, Integer> map){
+		System.out.print("{ " );
+		int i = 0;
+		for(String key: map.keySet()){
+			if(i >= 100) break;
+		
+			System.out.print(map.get(key) + ":" + key + ", ");
+		}
+		System.out.println("}");
+	}
+	
+	public static void termFrequency(List<Term> terms, List<Document> docs){
+		int i = 0;
+		for(Term term: terms){
+			if(i >= 100) break;
+			
+			System.out.print(term.getID() + ":[");
+			
+			
+			for(int k = 0; k < 100; ++k){
+				System.out.print("{");
+				Document d = docs.get(k);
+				Map<String, Integer> map = d.getWordFreq();
+				System.out.print(d.ID() + ": " + map.get(term.getText()) + "}, ");
+			}
+			System.out.print("]");
+		}
+	}
+	
 	public static void process(String dir){
 		//List<CrawlerData> pages = getPages(dir);
 		List<CrawlerData> pages = null;
@@ -218,6 +269,12 @@ public class ProcessData {
 		Integer corpus = docs.size();
 		
 		List<Term> terms = getTerms(docs);
+		Map<String, Integer> term2termid = new HashMap<String, Integer>();
+		for(Term term: terms){
+			term2termid.put(term.getText(), term.getID());
+		}
+		term2termid(term2termid);
+		
 		
 		
 
