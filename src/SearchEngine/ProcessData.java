@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,8 +45,26 @@ public class ProcessData {
 
 		return new HashSet<String>(Arrays.asList(words.replaceAll("'", "").split("\\s+")));
 	}
+	
+	public static Set<String> uniqueWords(List<PageData> pages){
+		Set<String> unique = new HashSet<String>();
+		Set<String> stopWords = setStopWords();
+		
+		for(PageData page : pages){
+			unique.addAll(Arrays.asList(page.getText().replaceAll("'", "").toLowerCase().split("[^A-Za-z0-9`']")));
+		}
+		unique.remove("");
+		for(Iterator<String> it = unique.iterator(); it.hasNext(); ){
+			String word = it.next();
+			if(Character.isDigit(word.charAt(0)) || word.length() < 2)
+				it.remove();
+		}
+		
+		unique.removeAll(stopWords);
+		return unique;
+	}
 
-	public static List<CrawlerData> getFilesInDirectory(String dir){
+	public static List<PageData> getFilesInDirectory(String dir){
 		List<String> toReturn = new ArrayList<String>();
 
 		File folder = new File(dir);
@@ -62,15 +81,15 @@ public class ProcessData {
 		return getDataFromFiles(toReturn);
 	}
 
-	public static List<CrawlerData> getDataFromFiles(List<String> files){
-		List<CrawlerData> toReturn = new ArrayList<CrawlerData>();
+	public static List<PageData> getDataFromFiles(List<String> files){
+		List<PageData> toReturn = new ArrayList<PageData>();
 
 		for(int i = 0; i < files.size(); ++i){
 			ObjectInputStream ois = null;
 			try{
 				ois = new ObjectInputStream(new FileInputStream(files.get(i)));
-				CrawlerData data = null;
-				while((data = (CrawlerData) ois.readObject()) != null)
+				PageData data = null;
+				while((data = (PageData) ois.readObject()) != null)
 					toReturn.add(data);
 			} catch (Exception e){
 				e.printStackTrace();
@@ -85,61 +104,57 @@ public class ProcessData {
 		return toReturn;
 	}
 	
-	public static List<String> getUniqueWords(List<Document> docs) {
-		Set<String> unique = new HashSet<String>();
-		Set<String> stopWords = setStopWords();
-		
-		for(Document doc : docs){
-			unique.addAll(doc.getWordFreq().keySet());
-		}
-
-		unique.removeAll(stopWords);
-		
-		return new ArrayList<String>(unique);
-	}
-	
-	public static Integer countDF(String term, List<Document> docs){
+	public static Integer countDF(Integer id, List<Document> docs){
 		Integer count = 0;
 		
 		for(Document document: docs){
-			if(document.getWordFreq().containsKey(term))
+			if(document.getWordFreq().containsKey(id))
 				++count;
 		}
 		
 		return count;
 	}
 	
-	public static List<Term> createTerms(List<Document> docs){
+	public static List<Term> createTerms(List<Document> docs, Map<String, Integer> t2tid){
 		List<Term> terms = new ArrayList<Term>();
-		List<String> unique = getUniqueWords(docs);
 		
 		int i = 0;
-		for(String term: unique){
-			System.out.println(++i);
-			terms.add( new Term(term, countDF(term, docs), terms.size()) );
+		for(String word: t2tid.keySet()){
+			if(++i % 1000 == 0)
+				System.out.println(++i);
+			Integer id = t2tid.get(word);
+			Integer df = countDF(id, docs);
+			terms.add(new Term(word, df, id));
 		}
 		return terms;
 	}
 	
-	public static List<Document> createDocuments(List<CrawlerData> pages){
+	public static List<Document> createDocuments(List<PageData> pages, Map<String, Integer> t2tid){
 		List<Document> documents = new ArrayList<Document>();
-		//Set<String> stopWords = setStopWords();
-
+		Set<String> stopWords = setStopWords();
+		
 		int i = 0;
-		for(CrawlerData page: pages){
+		for(PageData page : pages){
 			System.out.println(++i);
-
-			Map<String, Integer> wordFreq = new HashMap<String, Integer>();
-			List<String> text = Arrays.asList(page.getText().replaceAll("'", "").toLowerCase().split("[^A-Za-z0-9`']"));
-			Set<String> unique = new HashSet<String>(text);
-			unique.remove("");
 			
-			for(String key: unique){
-				if(key.length() < 2 || Character.isDigit(key.charAt(0))) continue;
-				// if( stopWords.contain(key) ) continue;
-				wordFreq.put(key, Collections.frequency(text, key));
+			Map<Integer, Integer> termFreq = new HashMap<Integer, Integer>();
+			List<String> text = Arrays.asList(page.getText().replaceAll("'", "").toLowerCase().split("[^A-Za-z0-9`']"));
+			Set<String> uniquePage = new HashSet<String>(text);
+			uniquePage.remove("");
+			uniquePage.removeAll(stopWords);
+			
+			for(String word : uniquePage){
+				if(word.length() < 2 || Character.isDigit(word.charAt(0))) continue;
+				Integer termID = t2tid.get(word);
+				if(termID == null){
+					System.out.println(word);
+					System.out.println("SOmething went wrong");
+					System.exit(0);
+				}
+				
+				termFreq.put(termID, Collections.frequency(text, word));
 			}
-			documents.add(new Document(page.getURL(), documents.size(), wordFreq));
+			documents.add(new Document(page.getURL(), page.getText(), documents.size(), termFreq));
 		}
 		
 		return documents;
@@ -180,42 +195,44 @@ public class ProcessData {
 		}
 	}
 	
-	public static List<CrawlerData> getPages(String dir){
+	public static List<PageData> getPages(String dir){
 		@SuppressWarnings("unchecked")
-		List<CrawlerData> pages = (List<CrawlerData>) readObjectFromFile("pages");
-		if(pages == null)
-			pages = getFilesInDirectory(dir+"CrawlerData"+File.separator);
-		writeObjectToFile((Object) pages, "pages");
+		List<PageData> pages = (List<PageData>) readObjectFromFile("pages");
+		if(pages == null){
+			pages = getFilesInDirectory(dir+"PageData"+File.separator);
+			writeObjectToFile((Object) pages, "pages");
+		}
 		
 		return pages;
 	}
 	
-	public static List<Document> getDocuments(List<CrawlerData> pages){
+	public static List<Document> getDocuments(List<PageData> pages, Map<String, Integer> t2tid){
 		@SuppressWarnings("unchecked")
 		List<Document> docs = (List<Document>) readObjectFromFile("docs");
-		if(docs == null)
-			docs = createDocuments(pages);
-		
-		writeObjectToFile((Object) docs, "docs");
+		if(docs == null){
+			docs = createDocuments(pages, t2tid);
+			writeObjectToFile((Object) docs, "docs");
+		}
 		
 		return docs;
 	}
 	
-	public static List<Term> getTerms(List<Document> docs){
+	public static List<Term> getTerms(List<Document> docs, Map<String, Integer> t2tid){
 		@SuppressWarnings("unchecked")
 		List<Term> terms = (List<Term>) readObjectFromFile("terms");
-		if(terms == null)
-			terms = createTerms(docs);
-		writeObjectToFile((Object) terms, "terms");
+		if(terms == null){
+			terms = createTerms(docs, t2tid);
+			writeObjectToFile((Object) terms, "terms");
+		}
 		return terms;
 	}
 	
-	public static void docid2termlist(List<Term> terms, List<Document> docs, Map<String, Integer> termid){
+	public static void docid2termlist(List<Term> terms, List<Document> docs){
 		System.out.print("{");
 		for(Document doc: docs){
 			System.out.print(doc.ID()+": [");
-			for(String key : doc.getWordFreq().keySet()){
-				System.out.print(termid.get(key) + ", ");
+			for(Integer key : doc.getWordFreq().keySet()){
+				System.out.print(key + ", ");
 			}
 			System.out.println("],");
 		}
@@ -254,8 +271,8 @@ public class ProcessData {
 			for(int k = 0; k < 100; ++k){
 				System.out.print("{");
 				Document d = docs.get(k);
-				Map<String, Integer> map = d.getWordFreq();
-				System.out.print(d.ID() + ": " + map.get(term.getText()) + "}, ");
+				Map<Integer, Integer> map = d.getWordFreq();
+				System.out.print(d.ID() + ": " + map.get(term.getID()) + "}, ");
 			}
 			System.out.print("]");
 		}
@@ -264,12 +281,12 @@ public class ProcessData {
 	public static void tfidf(List<Term> terms, List<Document> docs){
 		int i = 0;
 		for(Document doc : docs){
-			if(i >= 100) break;
+			System.out.println(++i);
 			
 			List<Double> vsmList = new ArrayList<Double>();
 			
 			for(Term term: terms){
-				Integer WTF = doc.getWordFreq().get(term.getText());
+				Integer WTF = doc.getWordFreq().get(term.getWord());
 				Double num = 0.0;
 				if(WTF != null)
 					num = (1 + Math.log10(WTF)) * Math.log10((double) docs.size() / term.df());
@@ -279,21 +296,33 @@ public class ProcessData {
 		}
 	}
 	
+	public static Map<String, Integer> makeTermID(Set<String> unique){
+		@SuppressWarnings("unchecked")
+		Map<String, Integer> t2tid = (Map<String, Integer>) readObjectFromFile("t2tidMap");
+		if(t2tid == null){
+			t2tid = new HashMap<String, Integer>();
+			for(String word : unique)
+				t2tid.put(word, t2tid.size());
+			writeObjectToFile(t2tid, "t2tidMap");
+		}
+		
+		return t2tid;
+	}
+	
 	public static void process(String dir){
-		//List<CrawlerData> pages = getPages(dir);
-		List<CrawlerData> pages = null;
+		List<PageData> pages = getPages(dir);
+		//List<CrawlerData> pages = null;
+		Set<String> unique = uniqueWords(pages);
+		Map<String, Integer> t2tid = makeTermID(unique);
+		
 
-		List<Document> docs = getDocuments(pages);
+		List<Document> docs = getDocuments(pages, t2tid);
 		Integer corpus = docs.size();
 		
-		List<Term> terms = getTerms(docs);
-		Map<String, Integer> term2termid = new HashMap<String, Integer>();
-		for(Term term: terms){
-			term2termid.put(term.getText(), term.getID());
-		}
-		term2termid(term2termid);
-		
-
+		List<Term> terms = getTerms(docs, t2tid);
+		System.out.println(terms.size());
+		tfidf(terms,docs);
+		writeObjectToFile(docs, "docs");
 	}
 
 	public static void main(String[] args) {
@@ -306,6 +335,8 @@ public class ProcessData {
 		
 		process(dir);
 	}
+	
+	
 
 }
 

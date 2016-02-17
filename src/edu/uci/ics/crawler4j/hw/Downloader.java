@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -14,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.regex.Pattern;
+
 import org.jsoup.Jsoup;
 import org.jsoup.helper.Validate;
 import org.jsoup.nodes.Document;
@@ -22,7 +25,7 @@ import org.jsoup.select.Elements;
 
 
 public class Downloader {
-	
+	static final Pattern htmlPattern = Pattern.compile(".*\\<[^>]+>.*", Pattern.DOTALL);
 	
 	public static Map<String, String> createFileURLMap(){
 		Map<String, String> map = new HashMap<String, String>();
@@ -32,14 +35,13 @@ public class Downloader {
 
 		jObject = new JSONObject(content.trim());
 		
-		int i = 0;
 		Set<String> keys = jObject.keySet();
 		for(String key: keys){
-			if(i == 0){
+
 			String file = jObject.getJSONObject(key).getString("file");
 			String url = jObject.getJSONObject(key).getString("url");
 			map.put(file, url);
-			}
+			
 		}
 		} catch (Exception e){
 			e.printStackTrace();
@@ -47,9 +49,9 @@ public class Downloader {
 		return map;
 	}
 	  
-	  public static List<String> htmlFiles(){
-		  List<String> htmlFiles = new ArrayList<String>();
-		  File dir = new File("./Html");
+	  public static List<File> htmlFiles(){
+		  List<File> htmlFiles = new ArrayList<File>();
+		  File dir = new File("C:\\Html");
 		  if(!dir.exists() && !dir.isDirectory()){
 			  System.out.println("Can't find HTML FILES OR IS NOT DIR");
 			  System.exit(1);
@@ -58,8 +60,8 @@ public class Downloader {
 		  for(File file: dir.listFiles()){
 			  if(file.getName().equals(".DS_Store")) continue;
 			  if(i++ == 0)
-				  System.out.println(file.getName());
-			  htmlFiles.add(file.getName());
+				  System.out.println(file);
+			  htmlFiles.add(file);
 		  }
 		  
 		  
@@ -68,27 +70,35 @@ public class Downloader {
 	  
 	  public static void main(String[] args){
 		  Map<String, String> map = createFileURLMap();
-		  List<String> files = htmlFiles();
+		  List<File> files = htmlFiles();
 		  int i = 0;
 		  ObjectOutputStream oos = null;
 		  try{
+			  File output = new File("output.txt");
+			  PrintWriter writer = new PrintWriter(output);
 			  oos = new ObjectOutputStream(new FileOutputStream("PageData/pages.cwl"));
-				  
-			  for(String file: files){
-				  String pathToFile = "Html/" + file;
-				  
-						String content = new Scanner(new File(pathToFile)).useDelimiter("\\Z").next();
-
-						try{
-						Document doc = Jsoup.parse(content);
+			  for(File file: files){
+				  String name = file.getName();
+					if(name.contains("&")) continue;
+					try{
+						//System.out.println(name);
+						System.out.println(++i);
+						Document doc = Jsoup.parse(file, "ISO-8859-1");
+						if(doc == null) continue;
 						String title = doc.title();
 						String text = doc.body().text();
-						System.out.println(map.get(file));
-						System.out.println(title);
-						System.out.println(text);
-						oos.writeObject(new PageData(map.get(file), title, text));
+						if(text.length() > 0 && !Character.isLetter(text.charAt(0)))
+							continue;
+						writer.println(name);
+						if(i >= 40000){
+							System.out.println(name);
+							System.out.println(text);
+						}
+						//System.out.println(title);
+						writer.println(text);
+						oos.writeObject(new PageData(map.get(name), title, text));
 						} catch (Exception e3 ) { e3.printStackTrace(); }
-			  }
+				  }
 			  oos.writeObject(null);
 					
 
@@ -99,9 +109,8 @@ public class Downloader {
 				  try { oos.close(); } catch (Exception e2) { e2.printStackTrace(); }
 			  }
 		  }
+		  System.out.println("I: " + i);
 		  
 		  
 	  }
-
-	  
 }

@@ -14,6 +14,10 @@ public final class Term implements Serializable {
 	Integer df;
 	Integer id;
 	
+	public Term(String word, Integer id){
+		this.word = word;
+		this.id = id;
+	}
 	
 	public Term(String word, Integer df, Integer id){
 		this.word = word;
@@ -21,21 +25,20 @@ public final class Term implements Serializable {
 		this.id = id;
 	}
 	
-	public Term(String word) {
-		this.word = word;
-	}
-	
-	public String getText() {
+	public String getWord() {
 		return word;
 	}
-	
 	
 	public int getID(){
 		return id;
 	}
 	
-	public void setID(int id){
+	public void setID(Integer id){
 		this.id = id;
+	}
+	
+	public void setDF(Integer df){
+		this.df = df;
 	}
 	
 	public int df(){
