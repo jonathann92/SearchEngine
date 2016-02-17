@@ -293,7 +293,8 @@ public class ProcessData {
 		}
 		term2termid(term2termid);
 		
-		
+		Document d;
+		d.getWordFreq()
 
 	}
 
