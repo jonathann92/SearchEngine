@@ -261,6 +261,24 @@ public class ProcessData {
 		}
 	}
 	
+	public static void tfidf(List<Term> terms, List<Document> docs){
+		int i = 0;
+		for(Document doc : docs){
+			if(i >= 100) break;
+			
+			List<Double> vsmList = new ArrayList<Double>();
+			
+			for(Term term: terms){
+				Integer WTF = doc.getWordFreq().get(term.getText());
+				Double num = 0.0;
+				if(WTF != null)
+					num = (1 + Math.log10(WTF)) * Math.log10((double) docs.size() / term.df());
+				vsmList.add(num);
+			}
+			doc.setVSM(vsmList);
+		}
+	}
+	
 	public static void process(String dir){
 		//List<CrawlerData> pages = getPages(dir);
 		List<CrawlerData> pages = null;
@@ -274,7 +292,6 @@ public class ProcessData {
 			term2termid.put(term.getText(), term.getID());
 		}
 		term2termid(term2termid);
-		
 		
 		
 
