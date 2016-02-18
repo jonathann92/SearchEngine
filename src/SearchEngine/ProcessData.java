@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import SearchEngine.Term;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.io.FileOutputStream;
 import edu.uci.ics.crawler4j.hw.*;
 
@@ -280,19 +281,29 @@ public class ProcessData {
 	
 	public static void tfidf(List<Term> terms, List<Document> docs){
 		int i = 0;
-		for(Document doc : docs){
-			System.out.println(++i);
-			
-			List<Double> vsmList = new ArrayList<Double>();
-			
-			for(Term term: terms){
-				Integer WTF = doc.getWordFreq().get(term.getWord());
-				Double num = 0.0;
-				if(WTF != null)
-					num = (1 + Math.log10(WTF)) * Math.log10((double) docs.size() / term.df());
-				vsmList.add(num);
+		double corpus = docs.size();
+		PrintWriter outfile = null;
+		try{
+			outfile = new PrintWriter("tfidf.txt");
+			for(Term t : terms){
+				outfile.print(i + ": [ ");
+				System.out.println(++i);
+				int k = 0;
+				for(Document d: docs){
+					Integer tf = d.getWordFreq().get(t.getID());
+					Double num = 0.0;
+					if(tf != null){
+						num = (1 + Math.log10(tf)) * Math.log10(corpus/ t.df());
+						outfile.print((k++) + ":" + num + " ");
+					}
+				}
+				outfile.println("]");
 			}
-			doc.setVSM(vsmList);
+		} catch (Exception e){
+			e.printStackTrace();
+		} finally {
+			if(outfile != null)
+				try { outfile.close(); } catch (Exception ee) { ee.printStackTrace(); }
 		}
 	}
 	
@@ -317,12 +328,15 @@ public class ProcessData {
 		
 
 		List<Document> docs = getDocuments(pages, t2tid);
-		Integer corpus = docs.size();
 		
-		List<Term> terms = getTerms(docs, t2tid);
-		System.out.println(terms.size());
+		List<Term> terms = getTerms(docs, t2tid); // TODO sort this arraylist by termID
+		System.out.println(terms.size()); 
+		for(int i = 0; i < terms.size(); ++i){
+			if(terms.get(i).getID() != i)
+				System.out.println("NO" + " " + i);
+		}
 		tfidf(terms,docs);
-		writeObjectToFile(docs, "docs");
+		
 	}
 
 	public static void main(String[] args) {
