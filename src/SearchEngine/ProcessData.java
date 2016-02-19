@@ -14,6 +14,7 @@ import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -225,6 +226,7 @@ public class ProcessData {
 			terms = createTerms(docs, t2tid);
 			writeObjectToFile((Object) terms, "terms");
 		}
+		Collections.sort(terms, new TermComparator());
 		return terms;
 	}
 	
@@ -284,21 +286,37 @@ public class ProcessData {
 		double corpus = docs.size();
 		PrintWriter outfile = null;
 		try{
-			outfile = new PrintWriter("tfidf.txt");
-			for(Term t : terms){
-				outfile.print(i + ": [ ");
+			for(Document d : docs){
+				List<Double> vsm = new ArrayList<Double>();
 				System.out.println(++i);
-				int k = 0;
-				for(Document d: docs){
+				for(Term t : terms){
 					Integer tf = d.getWordFreq().get(t.getID());
 					Double num = 0.0;
 					if(tf != null){
 						num = (1 + Math.log10(tf)) * Math.log10(corpus/ t.df());
-						outfile.print((k++) + ":" + num + " ");
+						vsm.add(num);
 					}
 				}
-				outfile.println("]");
+				d.setVSM(vsm);
 			}
+			
+			
+//			outfile = new PrintWriter("tfidf.txt");
+//			for(Term t : terms){
+//				List<Double> vsm = new ArrayList<Double>();
+//				outfile.print(i + ": [ ");
+//				System.out.println(++i);
+//				int k = 0;
+//				for(Document d: docs){
+//					Integer tf = d.getWordFreq().get(t.getID());
+//					Double num = 0.0;
+//					if(tf != null){
+//						num = (1 + Math.log10(tf)) * Math.log10(corpus/ t.df());
+//						outfile.print((k++) + ":" + num + " ");
+//					}
+//				}
+//				outfile.println("]");
+//			}
 		} catch (Exception e){
 			e.printStackTrace();
 		} finally {
@@ -320,6 +338,13 @@ public class ProcessData {
 		return t2tid;
 	}
 	
+	public static class TermComparator implements Comparator<Term> {
+		@Override
+		public int compare(Term a, Term b) {
+			return a.getID() - b.getID();
+		}
+	}
+	
 	public static void process(String dir){
 		List<PageData> pages = getPages(dir);
 		//List<CrawlerData> pages = null;
@@ -329,14 +354,8 @@ public class ProcessData {
 
 		List<Document> docs = getDocuments(pages, t2tid);
 		
-		List<Term> terms = getTerms(docs, t2tid); // TODO sort this arraylist by termID
+		List<Term> terms = getTerms(docs, t2tid); 
 		System.out.println(terms.size()); 
-		for(int i = 0; i < terms.size(); ++i){
-			if(terms.get(i).getID() != i)
-				System.out.println("NO" + " " + i);
-		}
-		tfidf(terms,docs);
-		
 	}
 
 	public static void main(String[] args) {
@@ -348,9 +367,7 @@ public class ProcessData {
 		String dir = args[0].endsWith(File.separator) ? args[0] : (args[0]+=File.separator);
 		
 		process(dir);
+		System.out.println("DONE");
 	}
-	
-	
-
 }
 
