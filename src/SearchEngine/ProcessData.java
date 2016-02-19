@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import SearchEngine.Document.TFIDF;
 import SearchEngine.Term;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
@@ -287,14 +289,15 @@ public class ProcessData {
 		PrintWriter outfile = null;
 		try{
 			for(Document d : docs){
-				List<Double> vsm = new ArrayList<Double>();
+				List<TFIDF> vsm = new ArrayList<TFIDF>();
 				System.out.println(++i);
 				for(Term t : terms){
 					Integer tf = d.getWordFreq().get(t.getID());
 					Double num = 0.0;
 					if(tf != null){
 						num = (1 + Math.log10(tf)) * Math.log10(corpus/ t.df());
-						vsm.add(num);
+						TFIDF tfidf = d.new TFIDF(t.getID(), num);
+						vsm.add(tfidf);
 					}
 				}
 				d.setVSM(vsm);
@@ -365,7 +368,6 @@ public class ProcessData {
 			return;
 		}
 		String dir = args[0].endsWith(File.separator) ? args[0] : (args[0]+=File.separator);
-		
 		process(dir);
 		System.out.println("DONE");
 	}

@@ -3,13 +3,24 @@ package SearchEngine;
 import java.io.Serializable;
 import java.util.*;
 
+
 @SuppressWarnings("serial")
 public class Document implements Serializable {
+	public class TFIDF{
+		int termID;
+		double tfidf;
+		
+		TFIDF(int termID, double tfidf){
+			this.termID = termID;
+			this.tfidf = tfidf;
+		}
+	}
+	
 	public String url;
 	public String content;
 	public int docID;
 	public Map<Integer, Integer> wordFreq = new HashMap<Integer, Integer>();
-	public List<Double> vsm;
+	public List<TFIDF> vsm;
 	
 	public Document(){}
 	
@@ -42,11 +53,11 @@ public class Document implements Serializable {
 		return wordFreq;
 	}
 	
-	public List<Double> getVSM(){
+	public List<TFIDF> getVSM(){
 		return vsm;
 	}
 	
-	public void setVSM(List<Double> vsm){
+	public void setVSM(List<TFIDF> vsm){
 		this.vsm = vsm;
 	}
 }
