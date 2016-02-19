@@ -4,9 +4,8 @@ import java.io.Serializable;
 import java.util.*;
 
 
-@SuppressWarnings("serial")
 public class Document implements Serializable {
-	public class TFIDF{
+	public class TFIDF implements Serializable{
 		int termID;
 		double tfidf;
 		
@@ -17,6 +16,7 @@ public class Document implements Serializable {
 	}
 	
 	public String url;
+	public String title;
 	public String content;
 	public int docID;
 	public Map<Integer, Integer> wordFreq = new HashMap<Integer, Integer>();
@@ -24,14 +24,9 @@ public class Document implements Serializable {
 	
 	public Document(){}
 	
-	public Document(String url, int docID, Map<Integer, Integer> wordFreq){
+	public Document(String url, String title, String content, int docID, Map<Integer, Integer> wordFreq){
 		this.url = url;
-		this.docID = docID;
-		this.wordFreq = wordFreq;
-	}
-	
-	public Document(String url, String content, int docID, Map<Integer, Integer> wordFreq){
-		this.url = url;
+		this.title = title;
 		this.content = content;
 		this.docID = docID;
 		this.wordFreq = wordFreq;
@@ -39,6 +34,10 @@ public class Document implements Serializable {
 	
 	public String getURL(){
 		return url;
+	}
+	
+	public String getTitle(){
+		return title;
 	}
 	
 	public String getContent(){
@@ -59,5 +58,10 @@ public class Document implements Serializable {
 	
 	public void setVSM(List<TFIDF> vsm){
 		this.vsm = vsm;
+	}
+	
+	@Override
+	public String toString(){
+		return "Title: " + this.title + "\nURL: " + this.url + "\nDocID: " + this.docID;
 	}
 }

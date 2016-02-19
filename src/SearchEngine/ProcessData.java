@@ -158,7 +158,7 @@ public class ProcessData {
 				
 				termFreq.put(termID, Collections.frequency(text, word));
 			}
-			documents.add(new Document(page.getURL(), page.getText(), documents.size(), termFreq));
+			documents.add(new Document(page.getURL(), page.getTitle(), page.getText(), documents.size(), termFreq));
 		}
 		
 		return documents;
@@ -234,9 +234,13 @@ public class ProcessData {
 	
 	public static void docid2termlist(List<Term> terms, List<Document> docs){
 		System.out.print("{");
+		int i = 0;
 		for(Document doc: docs){
+			if(i++ > 20) break;
 			System.out.print(doc.ID()+": [");
+			int k = 0;
 			for(Integer key : doc.getWordFreq().keySet()){
+				if(k >= 20) break;
 				System.out.print(key + ", ");
 			}
 			System.out.println("],");
@@ -247,7 +251,7 @@ public class ProcessData {
 		System.out.print("{ " );
 		int i = 0;
 		for(String key: map.keySet()){
-			if(i >= 100) break;
+			if(i++ >= 100) break;
 		
 			System.out.print(key + ":" + map.get(key) + ", ");
 		}
@@ -258,7 +262,7 @@ public class ProcessData {
 		System.out.print("{ " );
 		int i = 0;
 		for(String key: map.keySet()){
-			if(i >= 100) break;
+			if(i++ >= 100) break;
 		
 			System.out.print(map.get(key) + ":" + key + ", ");
 		}
@@ -268,7 +272,7 @@ public class ProcessData {
 	public static void termFrequency(List<Term> terms, List<Document> docs){
 		int i = 0;
 		for(Term term: terms){
-			if(i >= 100) break;
+			if(i++ >= 100) break;
 			
 			System.out.print(term.getID() + ":[");
 			
@@ -354,12 +358,12 @@ public class ProcessData {
 		Set<String> unique = uniqueWords(pages);
 		Map<String, Integer> t2tid = makeTermID(unique);
 		
-
 		List<Document> docs = getDocuments(pages, t2tid);
 		
 		List<Term> terms = getTerms(docs, t2tid); 
-		tfidf(terms, docs);
-		System.out.println(terms.size()); 
+		//tfidf(terms, docs);
+		//writeObjectToFile(docs, "doc");
+		System.out.println(docs.get(10));
 	}
 
 	public static void main(String[] args) {
