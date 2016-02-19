@@ -358,6 +358,7 @@ public class ProcessData {
 		List<Document> docs = getDocuments(pages, t2tid);
 		
 		List<Term> terms = getTerms(docs, t2tid); 
+		tfidf(terms, docs);
 		System.out.println(terms.size()); 
 	}
 
