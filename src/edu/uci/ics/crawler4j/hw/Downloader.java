@@ -26,6 +26,7 @@ import org.jsoup.select.Elements;
 
 public class Downloader {
 	static final Pattern htmlPattern = Pattern.compile(".*\\<[^>]+>.*", Pattern.DOTALL);
+	static final String htmlDir = "/Users/Jonathan/storage/html/Html";
 	
 	public static Map<String, String> createFileURLMap(){
 		Map<String, String> map = new HashMap<String, String>();
@@ -51,7 +52,7 @@ public class Downloader {
 	  
 	  public static List<File> htmlFiles(){
 		  List<File> htmlFiles = new ArrayList<File>();
-		  File dir = new File("C:\\Html");
+		  File dir = new File(htmlDir);
 		  if(!dir.exists() && !dir.isDirectory()){
 			  System.out.println("Can't find HTML FILES OR IS NOT DIR");
 			  System.exit(1);
@@ -59,7 +60,7 @@ public class Downloader {
 		  int i = 0;
 		  for(File file: dir.listFiles()){
 			  if(file.getName().equals(".DS_Store")) continue;
-			  if(i++ == 0)
+			  if(i == 0)
 				  System.out.println(file);
 			  htmlFiles.add(file);
 		  }
@@ -69,6 +70,8 @@ public class Downloader {
 	  }
 	  
 	  public static void main(String[] args){
+		  
+		  
 		  Map<String, String> map = createFileURLMap();
 		  List<File> files = htmlFiles();
 		  int i = 0;
@@ -79,27 +82,29 @@ public class Downloader {
 			  oos = new ObjectOutputStream(new FileOutputStream("PageData/pages.cwl"));
 			  for(File file: files){
 				  String name = file.getName();
+				  String url = map.get(name);
 					if(name.contains("&")) continue;
 					try{
-						//System.out.println(name);
-						System.out.println(++i);
-						Document doc = Jsoup.parse(file, "ISO-8859-1");
-						if(doc == null) continue;
+						Document doc = Jsoup.parse(file, "ISO-8859-1", url);
+						Elements links = doc.select("a[href]");
 						String title = doc.title();
 						String text = doc.body().text();
-						if(text.length() > 0 && !Character.isLetter(text.charAt(0)))
-							continue;
-						writer.println(name);
-						if(i >= 40000){
-							System.out.println(name);
-							System.out.println(text);
-						}
-						//System.out.println(title);
-						writer.println(text);
-						oos.writeObject(new PageData(map.get(name), title, text));
+
+						
+				        for (Element link : links) {
+				        	String outlink = link.attr("abs:href").split("#", 2)[0];
+				        
+				        	if(outlink.contains("ics.uci.edu")){
+				        	System.out.println("Link " + outlink);
+				        	writer.println(outlink);
+				        	}
+				        }
+				        
+						oos.writeObject(new PageData(url, title, text));
 						} catch (Exception e3 ) { e3.printStackTrace(); }
 				  }
 			  oos.writeObject(null);
+			  writer.close();
 					
 
 		  } catch (Exception e){
