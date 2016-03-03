@@ -14,7 +14,6 @@ import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -217,7 +216,7 @@ public class ProcessData {
 			docs = createDocuments(pages, t2tid);
 			writeObjectToFile((Object) docs, "docs");
 		}
-		
+		Collections.sort(docs);
 		return docs;
 	}
 	
@@ -228,7 +227,7 @@ public class ProcessData {
 			terms = createTerms(docs, t2tid);
 			writeObjectToFile((Object) terms, "terms");
 		}
-		Collections.sort(terms, new TermComparator());
+		Collections.sort(terms);
 		return terms;
 	}
 	
@@ -237,7 +236,7 @@ public class ProcessData {
 		int i = 0;
 		for(Document doc: docs){
 			if(i++ > 20) break;
-			System.out.print(doc.ID()+": [");
+			System.out.print(doc.getID()+": [");
 			int k = 0;
 			for(Integer key : doc.getWordFreq().keySet()){
 				if(k >= 20) break;
@@ -281,7 +280,7 @@ public class ProcessData {
 				System.out.print("{");
 				Document d = docs.get(k);
 				Map<Integer, Integer> map = d.getWordFreq();
-				System.out.print(d.ID() + ": " + map.get(term.getID()) + "}, ");
+				System.out.print(d.getID() + ": " + map.get(term.getID()) + "}, ");
 			}
 			System.out.print("]");
 		}
@@ -294,7 +293,8 @@ public class ProcessData {
 		try{
 			for(Document d : docs){
 				List<TFIDF> vsm = new ArrayList<TFIDF>();
-				System.out.println(++i);
+				if(i++ % 1000 == 0)
+					System.out.println(i);
 				for(Term t : terms){
 					Integer tf = d.getWordFreq().get(t.getID());
 					Double num = 0.0;
@@ -332,10 +332,11 @@ public class ProcessData {
 		}
 	}
 	
-	public static Map<String, Integer> makeTermID(Set<String> unique){
+	public static Map<String, Integer> makeTermID(List<PageData> pages){
 		@SuppressWarnings("unchecked")
 		Map<String, Integer> t2tid = (Map<String, Integer>) readObjectFromFile("t2tidMap");
 		if(t2tid == null){
+			Set<String> unique = uniqueWords(pages);
 			t2tid = new HashMap<String, Integer>();
 			for(String word : unique)
 				t2tid.put(word, t2tid.size());
@@ -345,25 +346,26 @@ public class ProcessData {
 		return t2tid;
 	}
 	
-	public static class TermComparator implements Comparator<Term> {
-		@Override
-		public int compare(Term a, Term b) {
-			return a.getID() - b.getID();
+	public static void check(List<Term> terms, Map<String, Integer> t2tid){
+		System.out.println("Checking Terms");
+		for(Term t : terms){
+			if(t.getID() != t2tid.get(t.getWord()))
+				System.out.println("Not mapped correctly");
 		}
+		
+		
 	}
 	
 	public static void process(String dir){
-		List<PageData> pages = getPages(dir);
-		//List<CrawlerData> pages = null;
-		Set<String> unique = uniqueWords(pages);
-		Map<String, Integer> t2tid = makeTermID(unique);
-		
+		/* Loading Data */
+		//List<PageData> pages = getPages(dir);
+		List<PageData> pages = null;
+		Map<String, Integer> t2tid = makeTermID(pages);
 		List<Document> docs = getDocuments(pages, t2tid);
-		
 		List<Term> terms = getTerms(docs, t2tid); 
-		//tfidf(terms, docs);
-		//writeObjectToFile(docs, "doc");
-		System.out.println(docs.get(10));
+		/* End Loading Data */
+		check(terms, t2tid);
+		
 	}
 
 	public static void main(String[] args) {

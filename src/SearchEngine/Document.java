@@ -4,7 +4,8 @@ import java.io.Serializable;
 import java.util.*;
 
 
-public class Document implements Serializable {
+@SuppressWarnings("serial")
+public class Document implements Comparable<Document>, Serializable {
 	public class TFIDF implements Serializable{
 		int termID;
 		double tfidf;
@@ -18,7 +19,8 @@ public class Document implements Serializable {
 	public String url;
 	public String title;
 	public String content;
-	public int docID;
+	public int id;
+	public int rank;
 	public Map<Integer, Integer> wordFreq = new HashMap<Integer, Integer>();
 	public List<TFIDF> vsm;
 	
@@ -28,8 +30,16 @@ public class Document implements Serializable {
 		this.url = url;
 		this.title = title;
 		this.content = content;
-		this.docID = docID;
+		this.id = docID;
 		this.wordFreq = wordFreq;
+	}
+	
+	public Document(Document d, int rank){
+		this.url = d.url;
+		this.title = d.title;
+		this.content = d.content;
+		this.id = d.id;
+		this.rank = rank;
 	}
 	
 	public String getURL(){
@@ -44,8 +54,8 @@ public class Document implements Serializable {
 		return content;
 	}
 	
-	public int ID(){
-		return docID;
+	public int getID(){
+		return id;
 	}
 	
 	public Map<Integer, Integer> getWordFreq(){
@@ -62,6 +72,11 @@ public class Document implements Serializable {
 	
 	@Override
 	public String toString(){
-		return "Title: " + this.title + "\nURL: " + this.url + "\nDocID: " + this.docID;
+		return "Title: " + this.title + "\nURL: " + this.url + "\nDocID: " + this.id;
+	}
+	
+	@Override
+	public int compareTo(Document d) {
+		return this.id - d.id;
 	}
 }

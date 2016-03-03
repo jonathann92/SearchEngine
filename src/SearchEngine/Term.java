@@ -1,6 +1,5 @@
 package SearchEngine;
 import java.io.Serializable;
-import java.util.List;
 
 /*
  * Authors: Jonathan Nguyen 54203830
@@ -9,7 +8,7 @@ import java.util.List;
  */
 
 @SuppressWarnings("serial")
-public final class Term implements Serializable {
+public final class Term implements Comparable<Term>, Serializable {
 	String word;
 	Integer df;
 	Integer id;
@@ -48,5 +47,10 @@ public final class Term implements Serializable {
 	@Override
 	public String toString() {
 		return id + ": " + word + ",";
+	}
+
+	@Override
+	public int compareTo(Term t) {
+		return this.id - t.id;
 	}
 }
