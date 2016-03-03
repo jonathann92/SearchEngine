@@ -7,8 +7,8 @@ import java.util.*;
 @SuppressWarnings("serial")
 public class Document implements Comparable<Document>, Serializable {
 	public class TFIDF implements Serializable{
-		int termID;
-		double tfidf;
+		public int termID;
+		public double tfidf;
 		
 		TFIDF(int termID, double tfidf){
 			this.termID = termID;

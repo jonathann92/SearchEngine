@@ -119,6 +119,7 @@ public class ProcessData {
 	}
 	
 	public static List<Term> createTerms(List<Document> docs, Map<String, Integer> t2tid){
+		System.out.println("Creating Terms");
 		List<Term> terms = new ArrayList<Term>();
 		
 		int i = 0;
@@ -352,20 +353,17 @@ public class ProcessData {
 			if(t.getID() != t2tid.get(t.getWord()))
 				System.out.println("Not mapped correctly");
 		}
-		
-		
 	}
 	
 	public static void process(String dir){
 		/* Loading Data */
-		//List<PageData> pages = getPages(dir);
-		List<PageData> pages = null;
+		List<PageData> pages = getPages(dir);
+		//List<PageData> pages = null;
 		Map<String, Integer> t2tid = makeTermID(pages);
 		List<Document> docs = getDocuments(pages, t2tid);
 		List<Term> terms = getTerms(docs, t2tid); 
 		/* End Loading Data */
-		check(terms, t2tid);
-		
+		check(terms, t2tid);		
 	}
 
 	public static void main(String[] args) {
