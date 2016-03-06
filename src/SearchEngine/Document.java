@@ -6,23 +6,13 @@ import java.util.*;
 
 @SuppressWarnings("serial")
 public class Document implements Comparable<Document>, Serializable {
-	public class TFIDF implements Serializable{
-		public int termID;
-		public double tfidf;
-		
-		TFIDF(int termID, double tfidf){
-			this.termID = termID;
-			this.tfidf = tfidf;
-		}
-	}
 	
 	public String url;
 	public String title;
 	public String content;
 	public int id;
-	public int rank;
+	public double rank;
 	public Map<Integer, Integer> wordFreq = new HashMap<Integer, Integer>();
-	public List<TFIDF> vsm;
 	
 	public Document(){}
 	
@@ -32,6 +22,7 @@ public class Document implements Comparable<Document>, Serializable {
 		this.content = content;
 		this.id = docID;
 		this.wordFreq = wordFreq;
+		this.rank = 0.0;
 	}
 	
 	public Document(Document d, int rank){
@@ -42,34 +33,55 @@ public class Document implements Comparable<Document>, Serializable {
 		this.rank = rank;
 	}
 	
-	public String getURL(){
+	
+	public String getUrl() {
 		return url;
 	}
-	
-	public String getTitle(){
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public String getTitle() {
 		return title;
 	}
-	
-	public String getContent(){
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public String getContent() {
 		return content;
 	}
-	
-	public int getID(){
+
+	public void setContent(String content) {
+		this.content = content;
+	}
+
+	public int getId() {
 		return id;
 	}
-	
-	public Map<Integer, Integer> getWordFreq(){
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public double getRank() {
+		return rank;
+	}
+
+	public void setRank(double rank) {
+		this.rank = rank;
+	}
+
+	public Map<Integer, Integer> getWordFreq() {
 		return wordFreq;
 	}
-	
-	public List<TFIDF> getVSM(){
-		return vsm;
+
+	public void setWordFreq(Map<Integer, Integer> wordFreq) {
+		this.wordFreq = wordFreq;
 	}
-	
-	public void setVSM(List<TFIDF> vsm){
-		this.vsm = vsm;
-	}
-	
+
 	@Override
 	public String toString(){
 		return "Title: " + this.title + "\nURL: " + this.url + "\nDocID: " + this.id;

@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import SearchEngine.Document.TFIDF;
 import SearchEngine.Term;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
@@ -232,12 +231,14 @@ public class ProcessData {
 		return terms;
 	}
 	
+	/*
+	
 	public static void docid2termlist(List<Term> terms, List<Document> docs){
 		System.out.print("{");
 		int i = 0;
 		for(Document doc: docs){
 			if(i++ > 20) break;
-			System.out.print(doc.getID()+": [");
+			System.out.print(doc.id+": [");
 			int k = 0;
 			for(Integer key : doc.getWordFreq().keySet()){
 				if(k >= 20) break;
@@ -332,6 +333,7 @@ public class ProcessData {
 				try { outfile.close(); } catch (Exception ee) { ee.printStackTrace(); }
 		}
 	}
+	*/
 	
 	public static Map<String, Integer> makeTermID(List<PageData> pages){
 		@SuppressWarnings("unchecked")

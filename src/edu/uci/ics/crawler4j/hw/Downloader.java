@@ -26,7 +26,7 @@ import org.jsoup.select.Elements;
 
 public class Downloader {
 	static final Pattern htmlPattern = Pattern.compile(".*\\<[^>]+>.*", Pattern.DOTALL);
-	static final String htmlDir = "/Users/Jonathan/storage/html/Html";
+	static final String htmlDir = "/Users/Jonathan/storage/html/";
 	
 	public static Map<String, String> createFileURLMap(){
 		Map<String, String> map = new HashMap<String, String>();
@@ -89,10 +89,10 @@ public class Downloader {
 						Elements links = doc.select("a[href]");
 						String title = doc.title();
 						String text = doc.body().text();
-
+						List<String> outlinks = new ArrayList<String>();
 						
 				        for (Element link : links) {
-				        	String outlink = link.attr("abs:href").split("#", 2)[0];
+				        	String outlink = link.attr("abs:href");
 				        
 				        	if(outlink.contains("ics.uci.edu")){
 				        	System.out.println("Link " + outlink);
@@ -100,7 +100,7 @@ public class Downloader {
 				        	}
 				        }
 				        
-						oos.writeObject(new PageData(url, title, text));
+						oos.writeObject(new PageData(url, title, text, outlinks));
 						} catch (Exception e3 ) { e3.printStackTrace(); }
 				  }
 			  oos.writeObject(null);
