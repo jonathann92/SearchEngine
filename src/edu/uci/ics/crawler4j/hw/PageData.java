@@ -1,17 +1,17 @@
 package edu.uci.ics.crawler4j.hw;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Set;
 
 public class PageData implements Serializable{
 	String title = null;
 	String url = null;
 	String text = null;
-	List<String> outlinks = null;
+	Set<String> outlinks = null;
 
 	public PageData(){}
 
-	public PageData(String url, String title, String text, List<String> outlinks){
+	public PageData(String url, String title, String text, Set<String> outlinks){
 		this.title = title;
 		this.url = url;
 		this.text = text;
@@ -30,7 +30,7 @@ public class PageData implements Serializable{
 		return this.title;
 	}
 	
-	public List<String> getOutlinks(){
+	public Set<String> getOutlinks(){
 		return this.outlinks;
 	}
 

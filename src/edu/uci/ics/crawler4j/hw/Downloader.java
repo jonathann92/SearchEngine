@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,8 @@ import org.jsoup.select.Elements;
 
 public class Downloader {
 	static final Pattern htmlPattern = Pattern.compile(".*\\<[^>]+>.*", Pattern.DOTALL);
-	static final String htmlDir = "/Users/Jonathan/storage/html/";
+	static final String htmlDir = "C:\\Html";
+	//static final String htmlDir = "/Users/Jonathan/storage/html/";
 	
 	public static Map<String, String> createFileURLMap(){
 		Map<String, String> map = new HashMap<String, String>();
@@ -85,18 +87,20 @@ public class Downloader {
 				  String url = map.get(name);
 					if(name.contains("&")) continue;
 					try{
-						Document doc = Jsoup.parse(file, "ISO-8859-1", url);
+						Document doc = Jsoup.parse(file, "UTF-8", url);
 						Elements links = doc.select("a[href]");
 						String title = doc.title();
 						String text = doc.body().text();
-						List<String> outlinks = new ArrayList<String>();
+						Set<String> outlinks = new HashSet<String>();
+						writer.println(title);
 						
 				        for (Element link : links) {
-				        	String outlink = link.attr("abs:href");
+				        	String outlink = link.attr("abs:href").split("#")[0];
 				        
 				        	if(outlink.contains("ics.uci.edu")){
-				        	System.out.println("Link " + outlink);
-				        	writer.println(outlink);
+				        		outlinks.add(outlink);
+				        	//System.out.println("Link " + outlink);
+				        	//writer.println(outlink);
 				        	}
 				        }
 				        

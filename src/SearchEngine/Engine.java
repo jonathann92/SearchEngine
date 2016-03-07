@@ -41,39 +41,19 @@ public class Engine{
 		
 	}
 	
-	public static Object readObjectFromFile(String name){
-		Object object = null;
-		File docFile = new File(name);
-		if(docFile.exists()){
-			ObjectInputStream ois = null;
-			try{
-				System.out.println("Retrieving: " + name);
-				ois = new ObjectInputStream(new FileInputStream(docFile));
-				object = ois.readObject();
-				System.out.println("Retrieved: " + name);
-			} catch (Exception e) { e.printStackTrace(); }
-			finally {
-				if( ois != null){
-					try { ois.close(); } catch (Exception e2) { e2.printStackTrace(); }
-				}
-			}
-		} else System.out.println("File: " + name + " Does not exist");
-
-		return object;
-	}
-	
 	public static List<docScore> search(List<Document> docs, List<Term> terms, Map<String, Integer> t2tid, List<String> query){
 		List<docScore> results = new ArrayList<docScore>();
 		double corpus = docs.size();
 		
 		for(Document d : docs){
-			if(d.getURL().contains("?") || d.getTitle().contains("Index of")) continue;
+			if(d.getUrl().contains("?") || d.getTitle().contains("Index of")) continue;
 			double tfidfScore = tfidfScore(terms, t2tid, query, corpus, d);
 			double titleScore = titleScore(d, query);
 			double score = titleWeight * titleScore + tfidfWeight * tfidfScore;
+			//score *= d.getRank();
 			
 			if(score > 0){
-				results.add(new docScore(score, d.getID()));
+				results.add(new docScore(score, d.getId()));
 			}
 		}
 		
@@ -117,21 +97,21 @@ public class Engine{
 	}
 	
 	public static void printResults(List<docScore> results, List<Document> docs){
-		for(int i = 0; i < 100 && i < results.size(); ++i){
+		for(int i = 0; i < 10 && i < results.size(); ++i){
 			int id = results.get(i).id;
 			Document page = docs.get(id);
 			
 			System.out.println("Title: " + page.getTitle());
-			System.out.println("URL: " + page.getURL());
+			System.out.println("URL: " + page.getUrl());
 			System.out.println();
 		}
 	}
 	
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args){
-		List<Document> docs = (List<Document>) readObjectFromFile("docs");
-		List<Term> terms = (List<Term>) readObjectFromFile("terms");
-		Map<String, Integer> t2tid = (Map<String, Integer>) readObjectFromFile("t2tidMap");
+		List<Document> docs = (List<Document>) Helper.readObjectFromFile("rankeddocs");
+		List<Term> terms = (List<Term>) Helper.readObjectFromFile("terms");
+		Map<String, Integer> t2tid = (Map<String, Integer>) Helper.readObjectFromFile("t2tidMap");
 		
 		while(true){
 			System.out.println("***********************");

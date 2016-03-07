@@ -13,6 +13,8 @@ public class Document implements Comparable<Document>, Serializable {
 	public int id;
 	public double rank;
 	public Map<Integer, Integer> wordFreq = new HashMap<Integer, Integer>();
+	public int outlinks;
+	Set<Integer> inlinks = null;
 	
 	public Document(){}
 	
@@ -23,8 +25,26 @@ public class Document implements Comparable<Document>, Serializable {
 		this.id = docID;
 		this.wordFreq = wordFreq;
 		this.rank = 0.0;
+		this.inlinks = new HashSet<Integer>();
+		this.outlinks = 0;
 	}
 	
+	public void addInlink(Integer id){
+		this.inlinks.add(id);
+	}
+	
+	public void setOutlinks(int n){
+		this.outlinks = n;
+	}
+
+	public Set<Integer> getInlinks() {
+		return inlinks;
+	}
+
+	public void setInlinks(Set<Integer> inlinks) {
+		this.inlinks = inlinks;
+	}
+
 	public Document(Document d, int rank){
 		this.url = d.url;
 		this.title = d.title;
