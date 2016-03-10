@@ -14,7 +14,7 @@ public class Helper{
 	
 	public static Object readObjectFromFile(String name){
 		Object object = null;
-		File docFile = new File(name);
+		File docFile = new File(name+".se");
 		if(docFile.exists()){
 			ObjectInputStream ois = null;
 			try{
@@ -37,7 +37,7 @@ public class Helper{
 		ObjectOutputStream oos = null;
 		try{
 			System.out.println("Writing File: " + name);
-			oos = new ObjectOutputStream (new FileOutputStream(name));
+			oos = new ObjectOutputStream (new FileOutputStream(name+".se"));
 			oos.writeObject(Object);
 			oos.writeObject(null);
 			System.out.println("Wrote File: " + name);

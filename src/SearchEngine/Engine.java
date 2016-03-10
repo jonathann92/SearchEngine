@@ -15,8 +15,8 @@ import java.util.Set;
 
 public class Engine{
 	
-	final static double titleWeight = .7;
-	final static double tfidfWeight = .3;
+	final static double titleWeight = .6;
+	final static double tfidfWeight = .4;
 	
 	public static class docScore implements Comparable<docScore>{
 		public double score;
@@ -50,7 +50,7 @@ public class Engine{
 			double tfidfScore = tfidfScore(terms, t2tid, query, corpus, d);
 			double titleScore = titleScore(d, query);
 			double score = titleWeight * titleScore + tfidfWeight * tfidfScore;
-			//score *= d.getRank();
+			score += 1 * d.getRank();
 			
 			if(score > 0){
 				results.add(new docScore(score, d.getId()));
@@ -97,7 +97,7 @@ public class Engine{
 	}
 	
 	public static void printResults(List<docScore> results, List<Document> docs){
-		for(int i = 0; i < 10 && i < results.size(); ++i){
+		for(int i = 0; i < 5 && i < results.size(); ++i){
 			int id = results.get(i).id;
 			Document page = docs.get(id);
 			

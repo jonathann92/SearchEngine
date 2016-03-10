@@ -8,30 +8,30 @@ public class PageRank {
 
 	public static void main(String[] args) {
 		List<Document> docs = (List<Document>) Helper.readObjectFromFile("docs");
+		
 		initialize(docs);
 		rankPages(docs);
+		System.out.println(countZeros(docs));
 		
-//		for(int i = 0; i < docs.size(); ++i)
-//			System.out.println(i + " : " + docs.get(i).getRank());
-		
+		Helper.writeObjectToFile(docs, "rankeddocs");
+	}
+
+	private static int countZeros(List<Document> docs) {
 		int count = 0;
 		for(Document d : docs){
 			if(d.getRank() <= 0.0){
 				++count;
-				//System.out.println(d.getUrl());
-				d.setRank(.05);
 			}
 		}
-		System.out.println(count);
-		Helper.writeObjectToFile(docs, "rankeddocs");
-		
-		
+		return count;
 	}
 	
 	private static void rankPages(List<Document> docs){
 		double convergence = Double.MAX_VALUE;
 		double total = docs.size();
-		while(convergence > 1.0){
+		int count = 0;
+		for(int i = 0; convergence > 0.005; ++i){
+			count = 0;
 			double oldTotal = total;
 			convergence = 0.0;
 			for(Document d : docs){
@@ -39,14 +39,16 @@ public class PageRank {
 				double newRank = calculateRank(docs, d);
 				d.setRank(newRank);
 				convergence += Math.abs(prevRank - newRank);
-				
 			}
-			
+
 			total = 0.0;
 			for(Document d : docs){
 				total += d.getRank();
+				if(d.getRank() == 0.0)
+					++count;
 			}
-			
+
+			System.out.println("0 ranked pages " + count);
 			System.out.println("SUM: " + total);
 			System.out.println("CON: " + convergence);
 		}
@@ -56,7 +58,7 @@ public class PageRank {
 		Set<Integer> inlinks = d.getInlinks();
 		double newRank = 0.0;
 		for(Integer in : inlinks){
-			newRank += (docs.get(in).getRank() / docs.get(in).outlinks);
+			newRank += (docs.get(in).getRank() / (double)docs.get(in).outlinks);
 		}
 		
 		return newRank;
@@ -65,9 +67,7 @@ public class PageRank {
 
 	private static void initialize(List<Document> docs) {
 		for(Document d : docs)
-			d.setRank(1.0);
-		
-		docs.get(10000).setRank(1.0);
+			d.setRank(0.0);
 	}
 
 }

@@ -143,14 +143,23 @@ public class ProcessData {
 	private static Set<Integer> outlinkSet(Map<String, Integer> docMap, List<Set<String>> outlinks, int i) {
 		Set<Integer> out = new HashSet<Integer>();
 		Set<String> linkSet = outlinks.get(i);
+		Set<String> remove = new HashSet<String>();
 		
-		for(String link : linkSet){
-			if(docMap.get(link) == null){
-				System.out.println("SOMETHING WENT TERRIBLY WRONG");
-				System.out.println("link: " + link);
-			} else
-				out.add(docMap.get(link));
+		for(String s : linkSet){
+			if(docMap.get(s) == null){
+				remove.add(s);
+			}
 		}
+		
+		linkSet.removeAll(remove);
+		
+		for(String s : linkSet){
+			if(docMap.get(s) == null)
+				System.out.println("WTF");
+			else
+				out.add(docMap.get(s));
+		}
+		
 		return out;
 	}
 	
@@ -195,7 +204,10 @@ public class ProcessData {
 
 				termFreq.put(termID, Collections.frequency(text, word));
 			}
-			documents.add(new Document(page.getURL(), page.getTitle(), page.getText(), documents.size(), termFreq));
+			String title = page.getTitle();
+			if(title == null)
+				title = "";
+			documents.add(new Document(page.getURL(), title, page.getText(), documents.size(), termFreq));
 			outlinks.add(page.getOutlinks());
 		}
 		
@@ -372,7 +384,9 @@ public class ProcessData {
 
 		Map<String, Integer> t2tid = makeTermID(pages);
 		List<Document> docs = getDocuments(pages, t2tid);
-		System.out.println(docs.get(10000).getInlinks().size());
+		Document d = docs.get(0);
+		System.out.println(d);
+		System.out.println(d.getTitle());
 		List<Term> terms = getTerms(docs, t2tid);
 		// /* End Loading Data */
 		check(terms, t2tid);
