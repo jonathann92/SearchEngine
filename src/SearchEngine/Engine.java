@@ -49,8 +49,8 @@ public class Engine{
 			if(d.getUrl().contains("?") || d.getTitle().contains("Index of")) continue;
 			double tfidfScore = tfidfScore(terms, t2tid, query, corpus, d);
 			double titleScore = titleScore(d, query);
-			double score = titleWeight * titleScore + tfidfWeight * tfidfScore;
-			score += 1 * d.getRank();
+			double score = titleWeight * titleScore + ( d.getRank() * tfidfWeight * tfidfScore);
+			score /= (titleWeight + tfidfWeight);
 			
 			if(score > 0){
 				results.add(new docScore(score, d.getId()));
@@ -103,6 +103,7 @@ public class Engine{
 			
 			System.out.println("Title: " + page.getTitle());
 			System.out.println("URL: " + page.getUrl());
+			System.out.println(results.get(i).score);
 			System.out.println();
 		}
 	}

@@ -67,7 +67,7 @@ public class PageRank {
 
 	private static void initialize(List<Document> docs) {
 		for(Document d : docs)
-			d.setRank(0.0);
+			d.setRank(1.0/(double)docs.size());
 	}
 
 }
